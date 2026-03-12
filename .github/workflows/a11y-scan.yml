@@ -1,0 +1,29 @@
+name: Accessibility Scanner
+
+on:
+  workflow_dispatch: # Run manually
+  schedule:
+    - cron: '0 6 * * 1' # Run every Monday at 6am UTC
+
+jobs:
+  accessibility_scanner:
+    name: Scan designsystem.digital.gov for accessibility issues
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: github/accessibility-scanner@v2
+        with:
+          urls: |
+            https://designsystem.digital.gov
+            https://designsystem.digital.gov/components/overview/
+            https://designsystem.digital.gov/design-tokens/
+            https://designsystem.digital.gov/utilities/
+            https://designsystem.digital.gov/patterns/
+            https://designsystem.digital.gov/templates/
+            https://designsystem.digital.gov/documentation/getting-started/
+            https://designsystem.digital.gov/documentation/accessibility/
+          repository: mgifford/uswds
+          token: ${{ secrets.GH_TOKEN }}
+          cache_key: designsystem.digital.gov
+          skip_copilot_assignment: true
+          include_screenshots: true
