@@ -9,7 +9,9 @@ jobs:
   accessibility_scanner:
     name: Scan designsystem.digital.gov for accessibility issues
     runs-on: ubuntu-latest
-    permissions: {}
+    permissions:
+      contents: read
+      issues: write
     steps:
       - uses: github/accessibility-scanner@v2
         with:
@@ -23,7 +25,7 @@ jobs:
             https://designsystem.digital.gov/documentation/getting-started/
             https://designsystem.digital.gov/documentation/accessibility/
           repository: mgifford/uswds
-          token: ${{ secrets.GH_TOKEN }}
+          token: ${{ github.token }}
           cache_key: designsystem.digital.gov
           skip_copilot_assignment: true
           include_screenshots: true
