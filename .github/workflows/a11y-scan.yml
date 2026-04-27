@@ -13,7 +13,12 @@ jobs:
       contents: read
       issues: write
     steps:
-      - uses: github/accessibility-scanner@v2
+      - uses: actions/checkout@v4
+
+      - name: Run accessibility scan
+        id: scanner
+        continue-on-error: true
+        uses: github/accessibility-scanner@v2
         with:
           urls: |
             https://designsystem.digital.gov
@@ -29,3 +34,46 @@ jobs:
           cache_key: designsystem.digital.gov
           skip_copilot_assignment: true
           include_screenshots: true
+
+      - name: Write scan results to job summary
+        if: always()
+        shell: bash
+        run: |
+          RESULTS_FILE="${GITHUB_WORKSPACE}/scanner-results.json"
+          echo "## Accessibility Scan Results" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "${{ steps.scanner.outcome }}" = "success" ]; then
+            echo "✅ Scan completed successfully. Issues filed (if any) in the repository." >> "$GITHUB_STEP_SUMMARY"
+          elif [ "${{ steps.scanner.outcome }}" = "failure" ]; then
+            echo "⚠️ **Scan step failed.**" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "This is commonly caused by GitHub Issues being disabled in this repository." >> "$GITHUB_STEP_SUMMARY"
+            echo "The accessibility scanner requires Issues to be enabled in order to file findings." >> "$GITHUB_STEP_SUMMARY"
+            echo "To resolve: enable Issues in repository Settings, or change the \`repository\` input to a repo where Issues are enabled." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "⚠️ **Scan step outcome: \`${{ steps.scanner.outcome }}\`.**" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          if [ -f "$RESULTS_FILE" ]; then
+            FILE_SIZE=$(wc -c < "$RESULTS_FILE")
+            if [ "$FILE_SIZE" -le 102400 ]; then
+              echo "" >> "$GITHUB_STEP_SUMMARY"
+              echo "### Findings" >> "$GITHUB_STEP_SUMMARY"
+              echo '```json' >> "$GITHUB_STEP_SUMMARY"
+              cat "$RESULTS_FILE" >> "$GITHUB_STEP_SUMMARY"
+              echo '```' >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "" >> "$GITHUB_STEP_SUMMARY"
+              echo "### Findings" >> "$GITHUB_STEP_SUMMARY"
+              echo "Results file is too large to display inline (${FILE_SIZE} bytes). Check the workflow artifacts." >> "$GITHUB_STEP_SUMMARY"
+            fi
+          fi
+
+      - name: Fail on scan error
+        if: steps.scanner.outcome != 'success'
+        shell: bash
+        run: |
+          echo "Accessibility scan did not complete successfully (outcome: ${{ steps.scanner.outcome }})."
+          echo "Review the job summary above for details on violations found and steps to resolve."
+          exit 1
