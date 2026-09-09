@@ -551,7 +551,6 @@ Much of the guidance in USWDS leans on open source designs, code, and patterns f
 
 - Consumer Financial Protection Bureau’s [Design Manual](https://cfpb.github.io/design-manual/)
 - UK's Government Digital Service's [UI Elements](https://design-system.service.gov.uk/)
-- Code for America’s Chime [Styleguide](https://github.com/chimecms/chime-starter)
 - Pivotal Labs [Component Library](https://pivotal-cf.github.io/pivotal-ui/)
 
 ## Licenses and attribution
